@@ -17,7 +17,7 @@ import Feed from "./pages/Feed";
 // @ts-ignore
 import Friends from "./pages/Friends";
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
