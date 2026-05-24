@@ -1,5 +1,4 @@
 // src/pages/Watchlist.jsx
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useMovies from "../hooks/useMovies";
@@ -10,60 +9,59 @@ const Watchlist = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
-  // ── Filter by search ─────────────────────────────────────────
-  const filtered = unwatchedMovies.filter((movie) =>
-    movie.title.toLowerCase().includes(search.toLowerCase()),
+  const filtered = unwatchedMovies.filter((m) =>
+    m.title.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div style={styles.page}>
-      {/* Navbar */}
-      <div style={styles.navbar}>
-        <button style={styles.backBtn} onClick={() => navigate("/library")}>
+    <div style={s.page}>
+      <nav style={s.nav}>
+        <button style={s.backBtn} onClick={() => navigate("/library")}>
           ← Library
         </button>
-        <h1 style={styles.logo}>🕐 Watchlist</h1>
-        <div style={{ width: "80px" }} />
+        <div style={s.logo}>CINELOG</div>
+        <div style={{ width: "100px" }} />
+      </nav>
+
+      <div style={s.pageHeader}>
+        <div style={s.eyebrow}>— To be seen —</div>
+        <h1 style={s.pageTitle}>Watchlist</h1>
+        <div style={s.count}>
+          {unwatchedMovies.length} film{unwatchedMovies.length !== 1 ? "s" : ""}{" "}
+          remaining
+        </div>
       </div>
 
-      {/* Controls */}
-      <div style={styles.controls}>
+      <div style={s.divider} />
+
+      <div style={s.controls}>
         <input
-          style={styles.searchInput}
+          style={s.searchInput}
           type="text"
           placeholder="Search watchlist..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
-        {/* Stats */}
-        <p style={styles.stat}>
-          {unwatchedMovies.length} movie
-          {unwatchedMovies.length !== 1 ? "s" : ""} to watch
-        </p>
       </div>
 
-      {/* Content */}
       {loading ? (
-        <div style={styles.centered}>
-          <p style={styles.message}>Loading watchlist...</p>
+        <div style={s.empty}>
+          <span style={s.emptyText}>Loading...</span>
         </div>
       ) : unwatchedMovies.length === 0 ? (
-        <div style={styles.centered}>
-          <p style={styles.emptyIcon}>🎉</p>
-          <p style={styles.message}>You're all caught up!</p>
-          <p style={styles.submessage}>No unwatched movies in your library.</p>
-          <button style={styles.addBtn} onClick={() => navigate("/library")}>
-            Go to library
+        <div style={s.empty}>
+          <div style={s.emptyTitle}>All caught up.</div>
+          <div style={s.emptyText}>No unwatched films in your library.</div>
+          <button style={s.goBtn} onClick={() => navigate("/library")}>
+            Go to library →
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={styles.centered}>
-          <p style={styles.message}>No movies match your search.</p>
+        <div style={s.empty}>
+          <div style={s.emptyText}>No results found.</div>
         </div>
       ) : (
-        <div style={styles.grid}>
+        <div style={s.grid}>
           {filtered.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
@@ -73,100 +71,112 @@ const Watchlist = () => {
   );
 };
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    backgroundColor: "#0f0f0f",
-    color: "#fff",
-    paddingBottom: "40px",
-  },
-  navbar: {
+const s = {
+  page: { minHeight: "100vh", background: "#F5F0E8", paddingBottom: "60px" },
+  nav: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "16px 24px",
-    borderBottom: "1px solid #1a1a1a",
-    backgroundColor: "#111",
+    padding: "0 28px",
+    background: "#1A1A1A",
+    height: "60px",
     position: "sticky",
     top: 0,
     zIndex: 100,
   },
   backBtn: {
-    backgroundColor: "transparent",
+    background: "transparent",
     border: "none",
-    color: "#888",
-    fontSize: "14px",
+    color: "#C4B99A",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
     cursor: "pointer",
-    width: "80px",
+    width: "100px",
     textAlign: "left",
-    padding: 0,
   },
   logo: {
+    fontFamily: "'Playfair Display',serif",
     fontSize: "20px",
-    fontWeight: "700",
-    margin: 0,
-    color: "#fff",
+    fontWeight: 900,
+    color: "#F5F0E8",
+    letterSpacing: "0.06em",
   },
-  controls: {
-    padding: "20px 24px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+  pageHeader: { padding: "28px 28px 0" },
+  eyebrow: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.14em",
+    color: "#8B7355",
+    marginBottom: "4px",
   },
+  pageTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "42px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+    lineHeight: 1,
+    marginBottom: "8px",
+  },
+  count: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#8B7355",
+  },
+  divider: { borderTop: "2px solid #1A1A1A", margin: "20px 28px" },
+  controls: { padding: "0 28px", marginBottom: "24px" },
   searchInput: {
-    backgroundColor: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: "8px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
     padding: "10px 14px",
-    color: "#fff",
-    fontSize: "14px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
     outline: "none",
     width: "100%",
     boxSizing: "border-box",
   },
-  stat: {
-    color: "#555",
-    fontSize: "13px",
-    margin: 0,
-  },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-    gap: "16px",
-    padding: "0 24px",
+    gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))",
+    gap: "0",
+    padding: "0 28px",
+    border: "2px solid #1A1A1A",
+    margin: "0 28px",
   },
-  centered: {
+  empty: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "400px",
-    gap: "8px",
+    minHeight: "360px",
+    gap: "10px",
+    textAlign: "center",
   },
-  emptyIcon: {
-    fontSize: "48px",
-    margin: "0 0 8px",
+  emptyTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "28px",
+    fontWeight: 900,
+    color: "#1A1A1A",
   },
-  message: {
-    color: "#666",
-    fontSize: "16px",
-    margin: 0,
+  emptyText: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#8B7355",
   },
-  submessage: {
-    color: "#444",
-    fontSize: "14px",
-    margin: 0,
-  },
-  addBtn: {
-    marginTop: "16px",
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
+  goBtn: {
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "3px 3px 0 #8B7355",
     padding: "10px 24px",
-    fontSize: "14px",
-    fontWeight: "600",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     cursor: "pointer",
+    marginTop: "8px",
   },
 };
 

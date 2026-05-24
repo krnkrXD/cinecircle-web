@@ -1,9 +1,8 @@
 // src/components/MovieModal.jsx
-
 import { useState } from "react";
 import useMovies from "../hooks/useMovies";
-import StarRating from "./StarRating";
 import { useToast } from "../context/ToastContext";
+import StarRating from "./StarRating";
 
 const OMDB_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
@@ -18,24 +17,20 @@ const MovieModal = ({ onClose }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Search OMDB ──────────────────────────────────────────────
   const handleSearch = async () => {
     if (!query.trim()) return;
     setError("");
     setSearching(true);
     setSelected(null);
-
     try {
       const res = await fetch(
         `https://www.omdbapi.com/?apikey=${OMDB_KEY}&s=${encodeURIComponent(query)}&type=movie`,
       );
       const data = await res.json();
-
-      if (data.Response === "True") {
-        setResults(data.Search);
-      } else {
+      if (data.Response === "True") setResults(data.Search);
+      else {
         setResults([]);
-        setError("No movies found. Try a different title.");
+        setError("No movies found. Try another title.");
       }
     } catch {
       setError("Search failed. Check your connection.");
@@ -44,7 +39,6 @@ const MovieModal = ({ onClose }) => {
     }
   };
 
-  // ── Select a movie — fetch full details ──────────────────────
   const handleSelect = async (movie) => {
     setError("");
     try {
@@ -60,7 +54,6 @@ const MovieModal = ({ onClose }) => {
     }
   };
 
-  // ── Save to Firestore ────────────────────────────────────────
   const handleSave = async () => {
     if (!selected) return;
     setSaving(true);
@@ -75,38 +68,43 @@ const MovieModal = ({ onClose }) => {
         imdbID: selected.imdbID,
         rating,
       });
-      showToast("Movie added to your library!");
+      showToast("Added to your library!");
       onClose();
     } catch {
-      setError("Failed to save movie. Please try again.");
+      setError("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>Add a movie</h2>
-          <button style={styles.closeBtn} onClick={onClose}>
+    <div style={s.overlay} onClick={onClose}>
+      <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div style={s.header}>
+          <div>
+            <div style={s.eyebrow}>— New entry —</div>
+            <h2 style={s.title}>Add a film</h2>
+          </div>
+          <button style={s.closeBtn} onClick={onClose}>
             ✕
           </button>
         </div>
 
-        {/* Search bar */}
-        <div style={styles.searchRow}>
+        <div style={s.divider} />
+
+        {/* Search */}
+        <div style={s.searchRow}>
           <input
-            style={styles.input}
+            style={s.input}
             type="text"
-            placeholder="Search by movie title..."
+            placeholder="Search by title..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <button
-            style={styles.searchBtn}
+            style={s.searchBtn}
             onClick={handleSearch}
             disabled={searching}
           >
@@ -114,71 +112,69 @@ const MovieModal = ({ onClose }) => {
           </button>
         </div>
 
-        {/* Error */}
-        {error && <p style={styles.error}>{error}</p>}
+        {error && <div style={s.error}>{error}</div>}
 
-        {/* Search results */}
+        {/* Results */}
         {results.length > 0 && (
-          <div style={styles.results}>
+          <div style={s.results}>
             {results.map((movie) => (
               <div
                 key={movie.imdbID}
-                style={styles.resultItem}
+                style={s.resultItem}
                 onClick={() => handleSelect(movie)}
               >
                 {movie.Poster !== "N/A" ? (
                   <img
                     src={movie.Poster}
                     alt={movie.Title}
-                    style={styles.resultPoster}
+                    style={s.resultPoster}
                   />
                 ) : (
-                  <div style={styles.noPoster}>🎬</div>
+                  <div style={s.noPoster}>?</div>
                 )}
                 <div>
-                  <p style={styles.resultTitle}>{movie.Title}</p>
-                  <p style={styles.resultYear}>{movie.Year}</p>
+                  <div style={s.resultTitle}>{movie.Title}</div>
+                  <div style={s.resultYear}>{movie.Year}</div>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Selected movie preview */}
+        {/* Selected */}
         {selected && (
-          <div style={styles.selected}>
-            <div style={styles.selectedTop}>
+          <div style={s.selected}>
+            <div style={s.selectedTop}>
               {selected.Poster !== "N/A" && (
                 <img
                   src={selected.Poster}
                   alt={selected.Title}
-                  style={styles.selectedPoster}
+                  style={s.selectedPoster}
                 />
               )}
-              <div style={styles.selectedInfo}>
-                <h3 style={styles.selectedTitle}>{selected.Title}</h3>
-                <p style={styles.selectedYear}>
+              <div style={{ flex: 1 }}>
+                <div style={s.selectedTitle}>{selected.Title}</div>
+                <div style={s.selectedMeta}>
                   {selected.Year} · {selected.Genre}
-                </p>
-                <p style={styles.selectedPlot}>{selected.Plot}</p>
-                <p style={styles.selectedImdb}>
-                  ⭐ IMDB: {selected.imdbRating}
-                </p>
+                </div>
+                <div style={s.selectedPlot}>{selected.Plot}</div>
+                <div style={s.imdb}>IMDB: {selected.imdbRating}</div>
               </div>
             </div>
 
-            {/* Personal rating */}
-            <div style={styles.ratingRow}>
-              <p style={styles.ratingLabel}>Your rating:</p>
+            <div style={s.divider} />
+
+            <div style={s.ratingRow}>
+              <span style={s.ratingLabel}>Your rating</span>
               <StarRating rating={rating} onRate={setRating} />
             </div>
 
             <button
-              style={{ ...styles.saveBtn, opacity: saving ? 0.7 : 1 }}
+              style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1 }}
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Add to library"}
+              {saving ? "Saving..." : "Add to library →"}
             </button>
           </div>
         )}
@@ -186,11 +182,12 @@ const MovieModal = ({ onClose }) => {
     </div>
   );
 };
-const styles = {
+
+const s = {
   overlay: {
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    background: "rgba(26,26,26,0.7)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -198,174 +195,189 @@ const styles = {
     padding: "20px",
   },
   modal: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: "16px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "8px 8px 0 #1A1A1A",
     width: "100%",
     maxWidth: "520px",
-    maxHeight: "85vh",
+    maxHeight: "88vh",
     overflowY: "auto",
-    border: "1px solid #2a2a2a",
-    padding: "24px",
+    padding: "28px",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
-  },
-  title: {
-    color: "#fff",
-    fontSize: "20px",
-    fontWeight: "600",
-    margin: 0,
-  },
-  closeBtn: {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#888",
-    fontSize: "18px",
-    cursor: "pointer",
-  },
-  searchRow: {
-    display: "flex",
-    gap: "10px",
+    alignItems: "flex-start",
     marginBottom: "16px",
   },
+  eyebrow: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.12em",
+    color: "#8B7355",
+    marginBottom: "4px",
+  },
+  title: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "26px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+  },
+  closeBtn: {
+    background: "transparent",
+    border: "2px solid #1A1A1A",
+    color: "#1A1A1A",
+    width: "32px",
+    height: "32px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "14px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  divider: { borderTop: "2px solid #1A1A1A", margin: "16px 0" },
+  searchRow: { display: "flex", gap: "8px", marginBottom: "12px" },
   input: {
     flex: 1,
-    backgroundColor: "#252525",
-    border: "1px solid #333",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    color: "#fff",
-    fontSize: "14px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    padding: "10px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
     outline: "none",
   },
   searchBtn: {
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 18px",
-    fontSize: "14px",
-    fontWeight: "600",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    padding: "10px 16px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
   error: {
-    color: "#ff6b6b",
-    fontSize: "13px",
+    border: "2px solid #C41E1E",
+    color: "#C41E1E",
+    padding: "8px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
     marginBottom: "12px",
   },
   results: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    marginBottom: "16px",
-    maxHeight: "260px",
+    border: "2px solid #1A1A1A",
+    maxHeight: "240px",
     overflowY: "auto",
+    marginBottom: "16px",
   },
   resultItem: {
     display: "flex",
     gap: "12px",
     alignItems: "center",
-    padding: "10px",
-    borderRadius: "8px",
+    padding: "10px 12px",
+    borderBottom: "1px solid #D4C9B4",
     cursor: "pointer",
-    backgroundColor: "#222",
-    border: "1px solid #2a2a2a",
+    background: "#F5F0E8",
   },
   resultPoster: {
-    width: "40px",
-    height: "56px",
+    width: "36px",
+    height: "52px",
     objectFit: "cover",
-    borderRadius: "4px",
+    border: "1px solid #1A1A1A",
     flexShrink: 0,
   },
   noPoster: {
-    width: "40px",
-    height: "56px",
+    width: "36px",
+    height: "52px",
+    background: "#E8E0D0",
+    border: "1px solid #1A1A1A",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#333",
-    borderRadius: "4px",
-    fontSize: "20px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "16px",
+    color: "#8B7355",
     flexShrink: 0,
   },
   resultTitle: {
-    color: "#fff",
-    fontSize: "14px",
-    fontWeight: "500",
-    margin: "0 0 4px",
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "13px",
+    fontWeight: 700,
+    color: "#1A1A1A",
+    marginBottom: "2px",
   },
   resultYear: {
-    color: "#888",
-    fontSize: "12px",
-    margin: 0,
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
   },
   selected: {
-    backgroundColor: "#222",
-    borderRadius: "12px",
+    background: "#E8E0D0",
+    border: "2px solid #1A1A1A",
     padding: "16px",
-    border: "1px solid #2a2a2a",
   },
-  selectedTop: {
-    display: "flex",
-    gap: "16px",
-    marginBottom: "16px",
-  },
+  selectedTop: { display: "flex", gap: "14px", marginBottom: "0" },
   selectedPoster: {
     width: "80px",
-    height: "112px",
+    height: "114px",
     objectFit: "cover",
-    borderRadius: "8px",
+    border: "2px solid #1A1A1A",
     flexShrink: 0,
   },
-  selectedInfo: {
-    flex: 1,
-  },
   selectedTitle: {
-    color: "#fff",
-    fontSize: "16px",
-    fontWeight: "600",
-    margin: "0 0 4px",
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "18px",
+    fontWeight: 700,
+    color: "#1A1A1A",
+    marginBottom: "4px",
   },
-  selectedYear: {
-    color: "#888",
-    fontSize: "12px",
-    margin: "0 0 8px",
+  selectedMeta: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
+    marginBottom: "8px",
   },
   selectedPlot: {
-    color: "#aaa",
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "0 0 8px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#1A1A1A",
+    lineHeight: 1.6,
+    marginBottom: "6px",
   },
-  selectedImdb: {
-    color: "#f5c518",
-    fontSize: "13px",
-    margin: 0,
+  imdb: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#C4882E",
+    letterSpacing: "0.06em",
   },
   ratingRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    marginBottom: "16px",
+    gap: "16px",
+    marginBottom: "14px",
   },
   ratingLabel: {
-    color: "#aaa",
-    fontSize: "14px",
-    margin: 0,
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#8B7355",
   },
   saveBtn: {
     width: "100%",
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "3px 3px 0 #8B7355",
     padding: "12px",
-    fontSize: "15px",
-    fontWeight: "600",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
 };

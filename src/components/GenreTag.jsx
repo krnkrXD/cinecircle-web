@@ -1,19 +1,20 @@
 // src/components/GenreTag.jsx
-
-const GenreTag = ({ genre }) => {
-  return <span style={styles.tag}>{genre}</span>;
-};
-
-const styles = {
-  tag: {
-    backgroundColor: "#2a2a2a",
-    color: "#aaa",
-    fontSize: "11px",
-    padding: "3px 8px",
-    borderRadius: "20px",
-    border: "1px solid #333",
-    whiteSpace: "nowrap",
-  },
-};
+const GenreTag = ({ genre }) => (
+  <span
+    style={{
+      border: "1.5px solid #1A1A1A",
+      padding: "2px 8px",
+      fontFamily: "'IBM Plex Mono',monospace",
+      fontSize: "9px",
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      color: "#1A1A1A",
+      background: "#F5F0E8",
+      whiteSpace: "nowrap",
+    }}
+  >
+    {genre}
+  </span>
+);
 
 export default GenreTag;

@@ -1,15 +1,14 @@
 // src/components/MovieCard.jsx
-
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StarRating from "./StarRating";
 import GenreTag from "./GenreTag";
 import useMovies from "../hooks/useMovies";
-import { useState } from "react";
 import { useToast } from "../context/ToastContext";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
-  const { toggleWatched, updateRating } = useMovies();
+  const { toggleWatched, updateRating, deleteMovie } = useMovies();
   const { showToast } = useToast();
   const [hovered, setHovered] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -22,104 +21,112 @@ const MovieCard = ({ movie }) => {
     : [];
 
   const handleDelete = async (e) => {
-    e.stopPropagation(); // prevent navigating to detail
-    if (!window.confirm(`Remove "${movie.title}" from your library?`)) return;
+    e.stopPropagation();
+    if (!window.confirm(`Remove "${movie.title}"?`)) return;
     setDeleting(true);
     try {
       await deleteMovie(movie.id);
       showToast("Movie removed.", "info");
     } catch {
-      showToast("Failed to remove movie.", "error");
+      showToast("Failed to remove.", "error");
       setDeleting(false);
     }
   };
 
   return (
     <div
-      style={styles.card}
+      style={{
+        ...s.card,
+        boxShadow: hovered ? "6px 6px 0 #1A1A1A" : "4px 4px 0 #1A1A1A",
+        transform: hovered ? "translate(-1px,-1px)" : "none",
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Poster */}
-      <div
-        style={styles.posterWrapper}
-        onClick={() => navigate(`/movie/${movie.id}`)}
-      >
+      <div style={s.posterWrap} onClick={() => navigate(`/movie/${movie.id}`)}>
         {movie.posterURL && movie.posterURL !== "N/A" ? (
-          <img src={movie.posterURL} alt={movie.title} style={styles.poster} />
+          <img src={movie.posterURL} alt={movie.title} style={s.poster} />
         ) : (
-          <div style={styles.noPoster}>🎬</div>
+          <div style={s.noPoster}>
+            <span
+              style={{
+                fontFamily: "'Playfair Display',serif",
+                fontSize: "11px",
+                color: "#8B7355",
+              }}
+            >
+              NO POSTER
+            </span>
+          </div>
         )}
 
         {/* Watched badge */}
-        {movie.watched && <div style={styles.watchedBadge}>✓ Watched</div>}
-        {/* Delete button — shows on hover */}
+        {movie.watched && <div style={s.watchedBadge}>✓ Watched</div>}
+
+        {/* Delete btn */}
         {hovered && (
           <button
-            style={styles.deleteBtn}
+            style={s.deleteBtn}
             onClick={handleDelete}
             disabled={deleting}
           >
-            {deleting ? "..." : "✕"}
+            {deleting ? "…" : "✕"}
           </button>
         )}
       </div>
 
       {/* Info */}
-      <div style={styles.info}>
-        <h3 style={styles.title} onClick={() => navigate(`/movie/${movie.id}`)}>
+      <div style={s.info}>
+        <div style={s.title} onClick={() => navigate(`/movie/${movie.id}`)}>
           {movie.title}
-        </h3>
+        </div>
 
-        {movie.year && <p style={styles.year}>{movie.year}</p>}
+        {movie.year && <div style={s.year}>{movie.year}</div>}
 
-        {/* Genres */}
         {genres.length > 0 && (
-          <div style={styles.genres}>
+          <div style={s.genres}>
             {genres.map((g) => (
               <GenreTag key={g} genre={g} />
             ))}
           </div>
         )}
 
-        {/* Star rating */}
         <StarRating
           rating={movie.rating}
           onRate={(r) => updateRating(movie.id, r)}
         />
 
-        {/* Watched toggle */}
         <button
           style={{
-            ...styles.watchButton,
-            backgroundColor: movie.watched ? "#1a3a1a" : "#1a1a2a",
-            color: movie.watched ? "#4caf50" : "#7986cb",
-            border: `1px solid ${movie.watched ? "#2a4a2a" : "#2a2a4a"}`,
+            ...s.watchBtn,
+            background: movie.watched ? "#1A1A1A" : "#F5F0E8",
+            color: movie.watched ? "#F5F0E8" : "#1A1A1A",
           }}
           onClick={() => toggleWatched(movie.id, movie.watched)}
         >
-          {movie.watched ? "✓ Watched" : "Mark as watched"}
+          {movie.watched ? "✓ Watched" : "Mark watched"}
         </button>
       </div>
     </div>
   );
 };
 
-const styles = {
+const s = {
   card: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: "12px",
-    overflow: "hidden",
-    border: "1px solid #2a2a2a",
-    transition: "transform 0.2s",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    transition: "box-shadow 0.15s, transform 0.15s",
     display: "flex",
     flexDirection: "column",
   },
-  posterWrapper: {
+  posterWrap: {
     position: "relative",
     cursor: "pointer",
     aspectRatio: "2/3",
-    backgroundColor: "#111",
+    background: "#E8E0D0",
+    border: "none",
+    borderBottom: "2px solid #1A1A1A",
     overflow: "hidden",
   },
   poster: {
@@ -134,70 +141,66 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "48px",
-    backgroundColor: "#111",
   },
   watchedBadge: {
     position: "absolute",
-    top: "8px",
+    bottom: "8px",
     right: "8px",
-    backgroundColor: "#4caf50",
-    color: "#fff",
-    fontSize: "11px",
-    padding: "3px 8px",
-    borderRadius: "20px",
-    fontWeight: "600",
-  },
-  info: {
-    padding: "12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    flex: 1,
-  },
-  title: {
-    color: "#fff",
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: 0,
-    cursor: "pointer",
-    lineHeight: "1.3",
-  },
-  year: {
-    color: "#666",
-    fontSize: "12px",
-    margin: 0,
-  },
-  genres: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "4px",
-  },
-  watchButton: {
-    padding: "6px 10px",
-    borderRadius: "6px",
-    fontSize: "12px",
-    fontWeight: "500",
-    cursor: "pointer",
-    marginTop: "auto",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "9px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    padding: "3px 7px",
   },
   deleteBtn: {
     position: "absolute",
     top: "8px",
     left: "8px",
-    backgroundColor: "rgba(0,0,0,0.7)",
-    color: "#ff6b6b",
-    border: "1px solid #3a2020",
-    borderRadius: "50%",
-    width: "28px",
-    height: "28px",
+    background: "#C41E1E",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    width: "26px",
+    height: "26px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    fontSize: "11px",
+    fontWeight: 700,
     cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: "700",
-    zIndex: 2,
+    padding: 0,
+  },
+  info: {
+    padding: "10px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flex: 1,
+  },
+  title: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "13px",
+    fontWeight: 700,
+    color: "#1A1A1A",
+    cursor: "pointer",
+    lineHeight: 1.2,
+  },
+  year: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    color: "#8B7355",
+  },
+  genres: { display: "flex", flexWrap: "wrap", gap: "4px" },
+  watchBtn: {
+    border: "2px solid #1A1A1A",
+    padding: "5px 8px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "9px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    marginTop: "auto",
+    cursor: "pointer",
   },
 };
 

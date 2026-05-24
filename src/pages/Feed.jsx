@@ -1,81 +1,80 @@
 // src/pages/Feed.jsx
-
 import { useNavigate } from "react-router-dom";
 import useRecs from "../hooks/useRecs";
-import { useAuth } from "../context/AuthContext";
 
 const Feed = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { recs, loading } = useRecs();
 
-  // ── Format timestamp ─────────────────────────────────────────
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const date = timestamp.toDate();
-    return date.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const formatDate = (ts) => {
+    if (!ts) return "";
+    return ts
+      .toDate()
+      .toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
   };
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div style={styles.page}>
-      {/* Navbar */}
-      <div style={styles.navbar}>
-        <button style={styles.backBtn} onClick={() => navigate("/library")}>
+    <div style={s.page}>
+      <nav style={s.nav}>
+        <button style={s.backBtn} onClick={() => navigate("/library")}>
           ← Library
         </button>
-        <h1 style={styles.logo}>📨 Feed</h1>
-        <div style={{ width: "80px" }} />
+        <div style={s.logo}>CINELOG</div>
+        <div style={{ width: "100px" }} />
+      </nav>
+
+      <div style={s.pageHeader}>
+        <div style={s.eyebrow}>— From friends —</div>
+        <h1 style={s.pageTitle}>Feed</h1>
       </div>
 
-      <div style={styles.content}>
-        <p style={styles.subtitle}>Movie recommendations from friends</p>
+      <div style={s.divider} />
 
-        {/* Content */}
+      <div style={s.content}>
         {loading ? (
-          <div style={styles.centered}>
-            <p style={styles.message}>Loading recommendations...</p>
+          <div style={s.empty}>
+            <span style={s.emptyText}>Loading...</span>
           </div>
         ) : recs.length === 0 ? (
-          <div style={styles.centered}>
-            <p style={styles.emptyIcon}>🎬</p>
-            <p style={styles.message}>No recommendations yet.</p>
-            <p style={styles.submessage}>
-              When a friend recommends you a movie it will appear here.
-            </p>
+          <div style={s.empty}>
+            <div style={s.emptyTitle}>Nothing yet.</div>
+            <div style={s.emptyText}>
+              When friends recommend films they will appear here.
+            </div>
           </div>
         ) : (
-          <div style={styles.recsList}>
-            {recs.map((rec) => (
-              <div key={rec.id} style={styles.recCard}>
-                {/* Poster */}
-                {rec.posterURL && rec.posterURL !== "N/A" ? (
+          <div style={s.list}>
+            {recs.map((rec, i) => (
+              <div
+                key={rec.id}
+                style={{
+                  ...s.recCard,
+                  borderTop: i === 0 ? "2px solid #1A1A1A" : "none",
+                }}
+              >
+                <div style={s.recNum}>{String(i + 1).padStart(2, "0")}</div>
+                {rec.posterURL && rec.posterURL !== "N/A" && (
                   <img
                     src={rec.posterURL}
                     alt={rec.movieTitle}
-                    style={styles.poster}
+                    style={s.poster}
                   />
-                ) : (
-                  <div style={styles.noPoster}>🎬</div>
                 )}
-
-                {/* Info */}
-                <div style={styles.recInfo}>
-                  <p style={styles.recTitle}>{rec.movieTitle || "A movie"}</p>
+                <div style={s.recInfo}>
+                  <div style={s.recTitle}>{rec.movieTitle || "A film"}</div>
                   {rec.message && (
-                    <p style={styles.recMessage}>"{rec.message}"</p>
+                    <div style={s.recMessage}>"{rec.message}"</div>
                   )}
-                  <p style={styles.recMeta}>
+                  <div style={s.recMeta}>
                     From{" "}
-                    <span style={styles.recFrom}>
-                      {rec.fromEmail || "a friend"}
-                    </span>{" "}
-                    · {formatDate(rec.createdAt)}
-                  </p>
+                    <span style={s.recFrom}>{rec.fromEmail || "a friend"}</span>
+                    {" · "}
+                    {formatDate(rec.createdAt)}
+                  </div>
                 </div>
               </div>
             ))}
@@ -86,132 +85,123 @@ const Feed = () => {
   );
 };
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    backgroundColor: "#0f0f0f",
-    color: "#fff",
-  },
-  navbar: {
+const s = {
+  page: { minHeight: "100vh", background: "#F5F0E8", paddingBottom: "60px" },
+  nav: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "16px 24px",
-    borderBottom: "1px solid #1a1a1a",
-    backgroundColor: "#111",
+    padding: "0 28px",
+    background: "#1A1A1A",
+    height: "60px",
     position: "sticky",
     top: 0,
     zIndex: 100,
   },
   backBtn: {
-    backgroundColor: "transparent",
+    background: "transparent",
     border: "none",
-    color: "#888",
-    fontSize: "14px",
+    color: "#C4B99A",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
     cursor: "pointer",
-    width: "80px",
+    width: "100px",
     textAlign: "left",
-    padding: 0,
   },
   logo: {
+    fontFamily: "'Playfair Display',serif",
     fontSize: "20px",
-    fontWeight: "700",
-    margin: 0,
-    color: "#fff",
+    fontWeight: 900,
+    color: "#F5F0E8",
+    letterSpacing: "0.06em",
   },
-  content: {
-    maxWidth: "640px",
-    margin: "0 auto",
-    padding: "24px",
+  pageHeader: { padding: "28px 28px 0" },
+  eyebrow: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.14em",
+    color: "#8B7355",
+    marginBottom: "4px",
   },
-  subtitle: {
-    color: "#555",
-    fontSize: "14px",
-    marginBottom: "24px",
+  pageTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "42px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+    lineHeight: 1,
   },
-  centered: {
+  divider: { borderTop: "2px solid #1A1A1A", margin: "20px 28px" },
+  content: { maxWidth: "680px", margin: "0 auto", padding: "0 28px" },
+  empty: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     minHeight: "360px",
-    gap: "8px",
-  },
-  emptyIcon: {
-    fontSize: "48px",
-    margin: "0 0 8px",
-  },
-  message: {
-    color: "#666",
-    fontSize: "16px",
-    margin: 0,
-  },
-  submessage: {
-    color: "#444",
-    fontSize: "14px",
-    margin: 0,
+    gap: "10px",
     textAlign: "center",
   },
-  recsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
+  emptyTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "28px",
+    fontWeight: 900,
+    color: "#1A1A1A",
   },
+  emptyText: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#8B7355",
+  },
+  list: { border: "2px solid #1A1A1A" },
   recCard: {
-    backgroundColor: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: "12px",
-    padding: "16px",
     display: "flex",
-    gap: "16px",
     alignItems: "flex-start",
+    gap: "16px",
+    padding: "20px",
+    borderBottom: "2px solid #1A1A1A",
+    background: "#F5F0E8",
+  },
+  recNum: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "28px",
+    fontWeight: 900,
+    color: "#E8E0D0",
+    lineHeight: 1,
+    flexShrink: 0,
+    minWidth: "40px",
   },
   poster: {
-    width: "56px",
-    height: "80px",
+    width: "52px",
+    height: "74px",
     objectFit: "cover",
-    borderRadius: "6px",
+    border: "2px solid #1A1A1A",
     flexShrink: 0,
   },
-  noPoster: {
-    width: "56px",
-    height: "80px",
-    backgroundColor: "#252525",
-    borderRadius: "6px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    flexShrink: 0,
-  },
-  recInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
+  recInfo: { flex: 1 },
   recTitle: {
-    color: "#fff",
-    fontSize: "16px",
-    fontWeight: "600",
-    margin: 0,
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "18px",
+    fontWeight: 700,
+    color: "#1A1A1A",
+    marginBottom: "6px",
   },
   recMessage: {
-    color: "#aaa",
-    fontSize: "14px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#1A1A1A",
     fontStyle: "italic",
-    margin: 0,
-    lineHeight: "1.5",
+    lineHeight: 1.6,
+    marginBottom: "8px",
   },
   recMeta: {
-    color: "#555",
-    fontSize: "12px",
-    margin: 0,
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    color: "#8B7355",
+    letterSpacing: "0.04em",
   },
-  recFrom: {
-    color: "#7986cb",
-    fontWeight: "500",
-  },
+  recFrom: { color: "#C41E1E" },
 };
 
 export default Feed;

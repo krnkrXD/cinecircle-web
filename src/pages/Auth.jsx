@@ -1,5 +1,4 @@
 // src/pages/Auth.jsx
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,75 +9,53 @@ import {
 
 const Auth = () => {
   const navigate = useNavigate();
-
-  // ── State ──────────────────────────────────────────────────
   const [isLogin, setIsLogin] = useState(true);
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  // ── Helpers ────────────────────────────────────────────────
   const clearForm = () => {
     setDisplayName("");
+    setUsername("");
     setEmail("");
     setPassword("");
     setError("");
   };
 
   const handleToggle = () => {
-    setIsLogin((prev) => !prev);
+    setIsLogin((p) => !p);
     clearForm();
   };
 
-  // ── Google sign-in ─────────────────────────────────────────
   const handleGoogle = async () => {
     setError("");
     setLoading(true);
     try {
       await signInWithGoogle();
       navigate("/library");
-    } catch (err) {
+    } catch {
       setError("Google sign-in failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Email submit ───────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Basic validation
-    if (!isLogin && !username) {
-      setError("Please enter a username.");
-      return;
-    }
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      return;
-    }
-    if (!isLogin && !displayName) {
-      setError("Please enter your name.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
+    if (!email || !password) return setError("Please fill in all fields.");
+    if (!isLogin && !displayName) return setError("Please enter your name.");
+    if (!isLogin && !username) return setError("Please enter a username.");
+    if (password.length < 6)
+      return setError("Password must be at least 6 characters.");
     setLoading(true);
     try {
-      if (isLogin) {
-        await signInWithEmail(email, password);
-      } else {
-        await signUpWithEmail(email, password, displayName, username);
-      }
+      if (isLogin) await signInWithEmail(email, password);
+      else await signUpWithEmail(email, password, displayName, username);
       navigate("/library");
     } catch (err) {
       setError(getErrorMessage(err.code));
@@ -87,7 +64,6 @@ const Auth = () => {
     }
   };
 
-  // ── Firebase error codes → readable messages ───────────────
   const getErrorMessage = (code) => {
     switch (code) {
       case "auth/user-not-found":
@@ -99,116 +75,146 @@ const Auth = () => {
       case "auth/invalid-email":
         return "Please enter a valid email address.";
       case "auth/too-many-requests":
-        return "Too many attempts. Please try again later.";
+        return "Too many attempts. Try again later.";
       default:
         return "Something went wrong. Please try again.";
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        {/* Title */}
-        <h1 style={styles.title}>🎬 CineLog</h1>
-        <p style={styles.subtitle}>
-          {isLogin ? "Welcome back" : "Create your account"}
-        </p>
+    <div style={s.page}>
+      <div style={s.card}>
+        {/* Logo */}
+        <div style={s.logoWrap}>
+          <div style={s.logoEyebrow}>— est. 2024 —</div>
+          <h1 style={s.logo}>CINELOG</h1>
+          <div style={s.logoSub}>Your personal film ledger</div>
+        </div>
 
-        {/* Error message */}
-        {error && <p style={styles.error}>{error}</p>}
+        {/* Tab toggle */}
+        <div style={s.tabs}>
+          <button
+            style={{ ...s.tab, ...(isLogin ? s.tabActive : {}) }}
+            onClick={() => {
+              setIsLogin(true);
+              clearForm();
+            }}
+          >
+            Sign in
+          </button>
+          <button
+            style={{ ...s.tab, ...(!isLogin ? s.tabActive : {}) }}
+            onClick={() => {
+              setIsLogin(false);
+              clearForm();
+            }}
+          >
+            Register
+          </button>
+        </div>
 
-        {/* Email/password form */}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Name field — sign up only */}
+        {/* Error */}
+        {error && <div style={s.error}>{error}</div>}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={s.form}>
           {!isLogin && (
-            <input
-              style={styles.input}
-              type="text"
-              placeholder="Your name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
-          )}
-          {!isLogin && (
-            <input
-              style={styles.input}
-              type="text"
-              placeholder="Username (e.g. john_doe)"
-              value={username}
-              onChange={(e) =>
-                setUsername(e.target.value.toLowerCase().replace(/\s/g, "_"))
-              }
-            />
+            <>
+              <div style={s.fieldWrap}>
+                <label style={s.label}>Full name</label>
+                <input
+                  style={s.input}
+                  type="text"
+                  placeholder="Your name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                />
+              </div>
+              <div style={s.fieldWrap}>
+                <label style={s.label}>Username</label>
+                <input
+                  style={s.input}
+                  type="text"
+                  placeholder="e.g. cinephile_42"
+                  value={username}
+                  onChange={(e) =>
+                    setUsername(
+                      e.target.value.toLowerCase().replace(/\s/g, "_"),
+                    )
+                  }
+                />
+              </div>
+            </>
           )}
 
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <div style={styles.passwordWrapper}>
+          <div style={s.fieldWrap}>
+            <label style={s.label}>Email</label>
             <input
-              style={{ ...styles.input, paddingRight: "44px" }}
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              style={s.input}
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <button
-              type="button"
-              style={styles.eyeBtn}
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? "🙈" : "👁️"}
-            </button>
+          </div>
+
+          <div style={s.fieldWrap}>
+            <label style={s.label}>Password</label>
+            <div style={s.passwordWrap}>
+              <input
+                style={{ ...s.input, paddingRight: "44px" }}
+                type={showPassword ? "text" : "password"}
+                placeholder="Min. 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                style={s.eyeBtn}
+                onClick={() => setShowPassword((p) => !p)}
+              >
+                {showPassword ? "○" : "●"}
+              </button>
+            </div>
           </div>
 
           <button
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.7 : 1,
-            }}
-            type="submit"
+            style={{ ...s.submitBtn, opacity: loading ? 0.7 : 1 }}
             disabled={loading}
           >
             {loading
               ? "Please wait..."
               : isLogin
-                ? "Sign in"
-                : "Create account"}
+                ? "Sign in →"
+                : "Create account →"}
           </button>
         </form>
 
         {/* Divider */}
-        <div style={styles.divider}>
-          <span style={styles.dividerLine} />
-          <span style={styles.dividerText}>or</span>
-          <span style={styles.dividerLine} />
+        <div style={s.divider}>
+          <span style={s.dividerLine} />
+          <span style={s.dividerText}>or continue with</span>
+          <span style={s.dividerLine} />
         </div>
 
-        {/* Google button */}
+        {/* Google */}
         <button
-          style={{ ...styles.googleButton, opacity: loading ? 0.7 : 1 }}
+          style={{ ...s.googleBtn, opacity: loading ? 0.7 : 1 }}
           onClick={handleGoogle}
           disabled={loading}
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
             alt="Google"
-            style={{ width: 20, height: 20 }}
+            style={{ width: 18, height: 18 }}
           />
-          Continue with Google
+          Google
         </button>
 
-        {/* Toggle login / sign up */}
-        <p style={styles.toggleText}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <span style={styles.toggleLink} onClick={handleToggle}>
-            {isLogin ? "Sign up" : "Sign in"}
+        <p style={s.toggleText}>
+          {isLogin ? "No account?" : "Have an account?"}{" "}
+          <span style={s.toggleLink} onClick={handleToggle}>
+            {isLogin ? "Register" : "Sign in"}
           </span>
         </p>
       </div>
@@ -216,84 +222,119 @@ const Auth = () => {
   );
 };
 
-// ── Styles ─────────────────────────────────────────────────────
-const styles = {
-  passwordWrapper: {
-    position: "relative",
-    display: "flex",
-    alignItems: "center",
-  },
-  eyeBtn: {
-    position: "absolute",
-    right: "12px",
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "16px",
-    padding: 0,
-    display: "flex",
-    alignItems: "center",
-  },
+const s = {
   page: {
     minHeight: "100vh",
+    background: "#F5F0E8",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0f0f0f",
+    padding: "24px",
   },
   card: {
-    backgroundColor: "#1a1a1a",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "6px 6px 0 #1A1A1A",
     padding: "40px 36px",
-    borderRadius: "16px",
     width: "100%",
     maxWidth: "400px",
-    border: "1px solid #2a2a2a",
   },
-  title: {
-    color: "#ffffff",
-    fontSize: "28px",
-    fontWeight: "700",
-    textAlign: "center",
-    margin: "0 0 6px",
+  logoWrap: { textAlign: "center", marginBottom: "28px" },
+  logoEyebrow: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.2em",
+    color: "#8B7355",
+    marginBottom: "6px",
   },
-  subtitle: {
-    color: "#888",
-    fontSize: "14px",
-    textAlign: "center",
-    margin: "0 0 24px",
+  logo: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "40px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+    letterSpacing: "0.06em",
+    lineHeight: 1,
+    marginBottom: "6px",
+  },
+  logoSub: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
+    letterSpacing: "0.08em",
+  },
+  tabs: {
+    display: "flex",
+    border: "2px solid #1A1A1A",
+    marginBottom: "24px",
+  },
+  tab: {
+    flex: 1,
+    padding: "10px",
+    background: "transparent",
+    border: "none",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#8B7355",
+    cursor: "pointer",
+  },
+  tabActive: {
+    background: "#1A1A1A",
+    color: "#F5F0E8",
   },
   error: {
-    backgroundColor: "#2a1a1a",
-    color: "#ff6b6b",
+    border: "2px solid #C41E1E",
+    background: "#FDF0F0",
+    color: "#C41E1E",
     padding: "10px 14px",
-    borderRadius: "8px",
-    fontSize: "13px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
     marginBottom: "16px",
-    border: "1px solid #3a2020",
   },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
+  form: { display: "flex", flexDirection: "column", gap: "14px" },
+  fieldWrap: { display: "flex", flexDirection: "column", gap: "6px" },
+  label: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#8B7355",
   },
   input: {
-    backgroundColor: "#252525",
-    border: "1px solid #333",
-    borderRadius: "8px",
-    padding: "12px 14px",
-    color: "#ffffff",
-    fontSize: "14px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    padding: "10px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
     outline: "none",
+    width: "100%",
   },
-  button: {
-    backgroundColor: "#e50914",
-    color: "#ffffff",
+  passwordWrap: { position: "relative" },
+  eyeBtn: {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "transparent",
     border: "none",
-    borderRadius: "8px",
-    padding: "12px",
-    fontSize: "15px",
-    fontWeight: "600",
+    color: "#8B7355",
+    fontSize: "14px",
     cursor: "pointer",
+    padding: 0,
+    fontFamily: "'IBM Plex Mono',monospace",
+  },
+  submitBtn: {
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "3px 3px 0 #8B7355",
+    padding: "12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     marginTop: "4px",
   },
   divider: {
@@ -302,40 +343,41 @@ const styles = {
     gap: "12px",
     margin: "20px 0",
   },
-  dividerLine: {
-    flex: 1,
-    height: "1px",
-    backgroundColor: "#2a2a2a",
-  },
+  dividerLine: { flex: 1, height: "2px", background: "#D4C9B4" },
   dividerText: {
-    color: "#555",
-    fontSize: "13px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    color: "#8B7355",
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap",
   },
-  googleButton: {
+  googleBtn: {
     width: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
-    backgroundColor: "#252525",
-    color: "#ffffff",
-    border: "1px solid #333",
-    borderRadius: "8px",
-    padding: "11px",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "3px 3px 0 #1A1A1A",
+    padding: "10px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#1A1A1A",
   },
   toggleText: {
-    color: "#666",
-    fontSize: "13px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
     textAlign: "center",
-    marginTop: "20px",
+    marginTop: "16px",
   },
   toggleLink: {
-    color: "#e50914",
+    color: "#C41E1E",
     cursor: "pointer",
-    fontWeight: "500",
+    textDecoration: "underline",
   },
 };
 

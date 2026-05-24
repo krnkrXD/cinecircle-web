@@ -1,5 +1,4 @@
 // src/components/RecModal.jsx
-
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -19,7 +18,6 @@ const RecModal = ({ movie, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ── Load friends ─────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       const list = await getFriends(currentUser.uid);
@@ -29,10 +27,9 @@ const RecModal = ({ movie, onClose }) => {
     load();
   }, [currentUser]);
 
-  // ── Send rec ─────────────────────────────────────────────────
   const handleSend = async () => {
     if (!selected) {
-      setError("Please select a friend.");
+      setError("Select a friend first.");
       return;
     }
     setSending(true);
@@ -48,105 +45,144 @@ const RecModal = ({ movie, onClose }) => {
     }
   };
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div style={styles.header}>
-          <h2 style={styles.title}>Recommend movie</h2>
-          <button style={styles.closeBtn} onClick={onClose}>
+    <div style={s.overlay} onClick={onClose}>
+      <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header bar */}
+        <div style={s.headerBar}>
+          <div style={s.headerLeft}>
+            <div style={s.eyebrow}>— Pass it on —</div>
+            <h2 style={s.title}>Recommend</h2>
+          </div>
+          <button style={s.closeBtn} onClick={onClose}>
             ✕
           </button>
         </div>
 
-        {/* Movie preview */}
-        <div style={styles.moviePreview}>
+        {/* Movie strip */}
+        <div style={s.movieStrip}>
           {movie.posterURL && movie.posterURL !== "N/A" && (
             <img
               src={movie.posterURL}
               alt={movie.title}
-              style={styles.poster}
+              style={s.stripPoster}
             />
           )}
-          <div>
-            <p style={styles.movieTitle}>{movie.title}</p>
-            {movie.year && <p style={styles.movieYear}>{movie.year}</p>}
+          <div style={s.stripInfo}>
+            <div style={s.stripTitle}>{movie.title}</div>
+            {movie.year && <div style={s.stripYear}>{movie.year}</div>}
           </div>
+          <div style={s.stripLabel}>Selected film</div>
         </div>
 
         {success ? (
-          <div style={styles.successBox}>
-            <p style={styles.successIcon}>🎉</p>
-            <p style={styles.successText}>Recommendation sent!</p>
-            <button style={styles.doneBtn} onClick={onClose}>
-              Done
+          /* ── Success state ── */
+          <div style={s.successState}>
+            <div style={s.successStamp}>
+              <div style={s.successWord}>SENT</div>
+              <div style={s.successSub}>Recommendation dispatched</div>
+            </div>
+            <p style={s.successMsg}>
+              Your recommendation has been delivered to{" "}
+              <strong style={{ fontWeight: 500 }}>
+                {selected?.displayName}
+              </strong>
+              .
+            </p>
+            <button style={s.doneBtn} onClick={onClose}>
+              Done →
             </button>
           </div>
         ) : (
           <>
-            {error && <p style={styles.error}>{error}</p>}
+            {/* ── Friend selector ── */}
+            <div style={s.section}>
+              <div style={s.sectionLabel}>01 · Choose recipient</div>
 
-            {/* Friends list */}
-            <p style={styles.label}>Send to</p>
-            {loading ? (
-              <p style={styles.empty}>Loading friends...</p>
-            ) : friends.length === 0 ? (
-              <p style={styles.empty}>
-                You have no friends added yet. Go to the Friends page to add
-                some!
-              </p>
-            ) : (
-              <div style={styles.friendsList}>
-                {friends.map((friend) => (
-                  <div
-                    key={friend.uid}
-                    style={{
-                      ...styles.friendRow,
-                      border: `1px solid ${
-                        selected?.uid === friend.uid ? "#e50914" : "#2a2a2a"
-                      }`,
-                      backgroundColor:
-                        selected?.uid === friend.uid ? "#2a1a1a" : "#222",
-                    }}
-                    onClick={() => setSelected(friend)}
-                  >
-                    <div style={styles.avatar}>
-                      {friend.displayName?.[0]?.toUpperCase() || "?"}
-                    </div>
-                    <div>
-                      <p style={styles.friendName}>{friend.displayName}</p>
-                      <p style={styles.friendHandle}>@{friend.username}</p>
-                    </div>
-                    {selected?.uid === friend.uid && (
-                      <span style={styles.checkmark}>✓</span>
-                    )}
+              {loading ? (
+                <div style={s.loadingRow}>
+                  <span style={s.loadingText}>Loading your list...</span>
+                </div>
+              ) : friends.length === 0 ? (
+                <div style={s.emptyFriends}>
+                  <div style={s.emptyFriendsText}>No friends added yet.</div>
+                  <div style={s.emptyFriendsSub}>
+                    Go to the Friends page to build your list first.
                   </div>
-                ))}
+                </div>
+              ) : (
+                <div style={s.friendGrid}>
+                  {friends.map((friend) => {
+                    const isSelected = selected?.uid === friend.uid;
+                    return (
+                      <button
+                        key={friend.uid}
+                        style={{
+                          ...s.friendChip,
+                          background: isSelected ? "#1A1A1A" : "#F5F0E8",
+                          color: isSelected ? "#F5F0E8" : "#1A1A1A",
+                          boxShadow: isSelected
+                            ? "3px 3px 0 #C41E1E"
+                            : "3px 3px 0 #C4B99A",
+                        }}
+                        onClick={() => setSelected(friend)}
+                      >
+                        <span
+                          style={{
+                            ...s.chipAvatar,
+                            background: isSelected ? "#C41E1E" : "#E8E0D0",
+                            color: isSelected ? "#F5F0E8" : "#8B7355",
+                            border: `1.5px solid ${isSelected ? "#C41E1E" : "#C4B99A"}`,
+                          }}
+                        >
+                          {friend.displayName?.[0]?.toUpperCase() || "?"}
+                        </span>
+                        <div style={s.chipInfo}>
+                          <div style={s.chipName}>{friend.displayName}</div>
+                          <div
+                            style={{
+                              ...s.chipHandle,
+                              color: isSelected ? "#C4B99A" : "#8B7355",
+                            }}
+                          >
+                            @{friend.username}
+                          </div>
+                        </div>
+                        {isSelected && <span style={s.chipCheck}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* ── Message ── */}
+            <div style={s.section}>
+              <div style={s.sectionLabel}>
+                02 · Add a note <span style={s.optional}>(optional)</span>
               </div>
-            )}
+              <textarea
+                style={s.textarea}
+                placeholder="Why should they watch this?"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={3}
+              />
+            </div>
 
-            {/* Message */}
-            <p style={{ ...styles.label, marginTop: "16px" }}>
-              Message <span style={styles.optional}>(optional)</span>
-            </p>
-            <textarea
-              style={styles.textarea}
-              placeholder="Why do you recommend this?"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={3}
-            />
+            {/* ── Error ── */}
+            {error && <div style={s.error}>{error}</div>}
 
+            {/* ── Send ── */}
             <button
               style={{
-                ...styles.sendBtn,
+                ...s.sendBtn,
                 opacity: sending || friends.length === 0 ? 0.6 : 1,
               }}
               onClick={handleSend}
               disabled={sending || friends.length === 0}
             >
-              {sending ? "Sending..." : "Send recommendation"}
+              {sending ? "Dispatching..." : "Send recommendation →"}
             </button>
           </>
         )}
@@ -155,11 +191,11 @@ const RecModal = ({ movie, onClose }) => {
   );
 };
 
-const styles = {
+const s = {
   overlay: {
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    background: "rgba(26,26,26,0.75)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -167,185 +203,268 @@ const styles = {
     padding: "20px",
   },
   modal: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: "16px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "8px 8px 0 #1A1A1A",
     width: "100%",
-    maxWidth: "440px",
-    maxHeight: "85vh",
+    maxWidth: "480px",
+    maxHeight: "90vh",
     overflowY: "auto",
-    border: "1px solid #2a2a2a",
-    padding: "24px",
   },
-  header: {
+  headerBar: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
+    alignItems: "flex-start",
+    padding: "24px 24px 16px",
+    borderBottom: "2px solid #1A1A1A",
+    background: "#E8E0D0",
+  },
+  headerLeft: {},
+  eyebrow: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.14em",
+    color: "#8B7355",
+    marginBottom: "4px",
   },
   title: {
-    color: "#fff",
-    fontSize: "20px",
-    fontWeight: "600",
-    margin: 0,
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "28px",
+    fontWeight: 900,
+    color: "#1A1A1A",
   },
   closeBtn: {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#888",
-    fontSize: "18px",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    width: "32px",
+    height: "32px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
     cursor: "pointer",
-  },
-  moviePreview: {
     display: "flex",
-    gap: "14px",
     alignItems: "center",
-    backgroundColor: "#222",
-    borderRadius: "10px",
-    padding: "12px",
-    marginBottom: "20px",
-    border: "1px solid #2a2a2a",
-  },
-  poster: {
-    width: "44px",
-    height: "62px",
-    objectFit: "cover",
-    borderRadius: "6px",
+    justifyContent: "center",
     flexShrink: 0,
   },
-  movieTitle: {
-    color: "#fff",
-    fontSize: "15px",
-    fontWeight: "600",
-    margin: "0 0 4px",
+  movieStrip: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    padding: "14px 24px",
+    borderBottom: "2px solid #1A1A1A",
+    background: "#1A1A1A",
   },
-  movieYear: {
-    color: "#666",
-    fontSize: "13px",
-    margin: 0,
+  stripPoster: {
+    width: "36px",
+    height: "52px",
+    objectFit: "cover",
+    border: "1px solid #444",
+    flexShrink: 0,
   },
-  error: {
-    backgroundColor: "#2a1a1a",
-    color: "#ff6b6b",
-    padding: "10px 14px",
-    borderRadius: "8px",
-    fontSize: "13px",
-    marginBottom: "16px",
-    border: "1px solid #3a2020",
+  stripInfo: { flex: 1 },
+  stripTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "16px",
+    fontWeight: 700,
+    color: "#F5F0E8",
+    marginBottom: "2px",
   },
-  label: {
-    color: "#888",
-    fontSize: "13px",
-    margin: "0 0 8px",
+  stripYear: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
+  },
+  stripLabel: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "9px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#8B7355",
+    textAlign: "right",
+    flexShrink: 0,
+  },
+  section: {
+    padding: "20px 24px 0",
+  },
+  sectionLabel: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "#8B7355",
+    marginBottom: "12px",
+    borderBottom: "1px solid #D4C9B4",
+    paddingBottom: "6px",
   },
   optional: {
-    color: "#555",
-    fontSize: "12px",
+    color: "#C4B99A",
+    textTransform: "none",
+    letterSpacing: 0,
+    fontSize: "10px",
   },
-  empty: {
-    color: "#555",
-    fontSize: "13px",
-    textAlign: "center",
+  loadingRow: {
     padding: "16px 0",
-    margin: 0,
   },
-  friendsList: {
+  loadingText: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#8B7355",
+  },
+  emptyFriends: {
+    border: "2px solid #D4C9B4",
+    background: "#E8E0D0",
+    padding: "16px",
+    textAlign: "center",
+  },
+  emptyFriendsText: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "16px",
+    fontWeight: 700,
+    color: "#1A1A1A",
+    marginBottom: "4px",
+  },
+  emptyFriendsSub: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    color: "#8B7355",
+    lineHeight: 1.5,
+  },
+  friendGrid: {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
     maxHeight: "200px",
     overflowY: "auto",
   },
-  friendRow: {
+  friendChip: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    borderRadius: "8px",
+    gap: "10px",
+    border: "2px solid #1A1A1A",
     padding: "10px 12px",
     cursor: "pointer",
+    textAlign: "left",
+    width: "100%",
+    transition: "box-shadow 0.1s",
   },
-  avatar: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    backgroundColor: "#e50914",
-    color: "#fff",
+  chipAvatar: {
+    width: "30px",
+    height: "30px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    fontFamily: "'Playfair Display',serif",
     fontSize: "14px",
-    fontWeight: "700",
+    fontWeight: 900,
     flexShrink: 0,
   },
-  friendName: {
-    color: "#fff",
+  chipInfo: { flex: 1 },
+  chipName: {
+    fontFamily: "'Playfair Display',serif",
     fontSize: "14px",
-    fontWeight: "500",
-    margin: "0 0 2px",
+    fontWeight: 700,
+    lineHeight: 1.2,
+    marginBottom: "1px",
   },
-  friendHandle: {
-    color: "#555",
-    fontSize: "12px",
-    margin: 0,
+  chipHandle: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
   },
-  checkmark: {
-    marginLeft: "auto",
-    color: "#e50914",
-    fontSize: "16px",
-    fontWeight: "700",
+  chipCheck: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "14px",
+    color: "#C41E1E",
+    flexShrink: 0,
   },
   textarea: {
     width: "100%",
-    backgroundColor: "#252525",
-    border: "1px solid #333",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    color: "#fff",
-    fontSize: "14px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    padding: "10px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
     outline: "none",
     resize: "vertical",
-    fontFamily: "inherit",
-    lineHeight: "1.5",
+    lineHeight: 1.6,
     boxSizing: "border-box",
   },
-  sendBtn: {
-    width: "100%",
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "12px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginTop: "16px",
+  error: {
+    margin: "16px 24px 0",
+    border: "2px solid #C41E1E",
+    color: "#C41E1E",
+    padding: "8px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
   },
-  successBox: {
+  sendBtn: {
+    display: "block",
+    width: "calc(100% - 48px)",
+    margin: "20px 24px 24px",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "4px 4px 0 #C41E1E",
+    padding: "14px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+  },
+  successState: {
+    padding: "40px 24px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "12px",
-    padding: "24px 0",
+    gap: "20px",
+    textAlign: "center",
   },
-  successIcon: {
-    fontSize: "48px",
-    margin: 0,
+  successStamp: {
+    width: "140px",
+    height: "140px",
+    border: "4px solid #1A1A1A",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    transform: "rotate(-6deg)",
+    boxShadow: "4px 4px 0 #C41E1E",
   },
-  successText: {
-    color: "#4caf50",
-    fontSize: "16px",
-    fontWeight: "500",
-    margin: 0,
+  successWord: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "32px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+    letterSpacing: "0.1em",
+  },
+  successSub: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "8px",
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "#8B7355",
+    marginTop: "4px",
+  },
+  successMsg: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#8B7355",
+    lineHeight: 1.6,
+    maxWidth: "300px",
   },
   doneBtn: {
-    backgroundColor: "#1a3a1a",
-    color: "#4caf50",
-    border: "1px solid #2d5a2d",
-    borderRadius: "8px",
-    padding: "10px 32px",
-    fontSize: "14px",
-    fontWeight: "600",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "4px 4px 0 #8B7355",
+    padding: "12px 32px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
     cursor: "pointer",
-    marginTop: "8px",
   },
 };
 

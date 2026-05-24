@@ -1,5 +1,4 @@
 // src/components/NoteEditor.jsx
-
 import { useState } from "react";
 import useNotes from "../hooks/useNotes";
 import { useToast } from "../context/ToastContext";
@@ -12,137 +11,124 @@ const NoteEditor = ({ movieId }) => {
   const [editContent, setEditContent] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // ── Add note ─────────────────────────────────────────────────
   const handleAdd = async () => {
     if (!newNote.trim()) return;
     setSaving(true);
     try {
       await addNote(newNote.trim());
-      showToast("Note saved!");
       setNewNote("");
+      showToast("Note saved!");
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Start editing ────────────────────────────────────────────
-  const handleEditStart = (note) => {
-    setEditingId(note.id);
-    setEditContent(note.content);
-  };
-
-  // ── Save edit ────────────────────────────────────────────────
   const handleEditSave = async (noteId) => {
     if (!editContent.trim()) return;
     setSaving(true);
     try {
       await updateNote(noteId, editContent.trim());
-      showToast("Note updated!");
       setEditingId(null);
-      setEditContent("");
+      showToast("Note updated!");
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Cancel edit ──────────────────────────────────────────────
-  const handleEditCancel = () => {
-    setEditingId(null);
-    setEditContent("");
-  };
-
-  // ── Delete note ──────────────────────────────────────────────
   const handleDelete = async (noteId) => {
     if (!window.confirm("Delete this note?")) return;
     await deleteNote(noteId);
     showToast("Note deleted.", "info");
   };
 
-  // ── Format timestamp ─────────────────────────────────────────
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const date = timestamp.toDate();
-    return date.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const formatDate = (ts) => {
+    if (!ts) return "";
+    return ts
+      .toDate()
+      .toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
   };
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div style={styles.container}>
-      <h3 style={styles.heading}>📝 Notes</h3>
+    <div>
+      <div style={s.heading}>
+        <div style={s.headingLine} />
+        <h3 style={s.headingText}>Field notes</h3>
+      </div>
 
-      {/* New note input */}
-      <div style={styles.inputWrapper}>
+      {/* Input */}
+      <div style={s.inputWrap}>
         <textarea
-          style={styles.textarea}
-          placeholder="Write a note about this movie..."
+          style={s.textarea}
+          placeholder="Write a note about this film..."
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           rows={3}
         />
         <button
-          style={{
-            ...styles.addBtn,
-            opacity: saving || !newNote.trim() ? 0.6 : 1,
-          }}
+          style={{ ...s.addBtn, opacity: saving || !newNote.trim() ? 0.6 : 1 }}
           onClick={handleAdd}
           disabled={saving || !newNote.trim()}
         >
-          {saving ? "Saving..." : "Add note"}
+          {saving ? "Saving..." : "Add note →"}
         </button>
       </div>
 
-      {/* Notes list */}
+      {/* List */}
       {loading ? (
-        <p style={styles.empty}>Loading notes...</p>
+        <p style={s.empty}>Loading notes...</p>
       ) : notes.length === 0 ? (
-        <p style={styles.empty}>No notes yet. Add one above!</p>
+        <p style={s.empty}>No notes yet.</p>
       ) : (
-        <div style={styles.notesList}>
+        <div style={s.list}>
           {notes.map((note) => (
-            <div key={note.id} style={styles.noteCard}>
+            <div key={note.id} style={s.noteCard}>
               {editingId === note.id ? (
-                // Edit mode
-                <div style={styles.editWrapper}>
+                <div style={s.editWrap}>
                   <textarea
-                    style={styles.textarea}
+                    style={s.textarea}
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
                     rows={3}
                   />
-                  <div style={styles.editActions}>
+                  <div style={s.editActions}>
                     <button
-                      style={styles.saveEditBtn}
+                      style={s.saveEditBtn}
                       onClick={() => handleEditSave(note.id)}
                       disabled={saving}
                     >
-                      {saving ? "Saving..." : "Save"}
+                      {saving ? "..." : "Save"}
                     </button>
-                    <button style={styles.cancelBtn} onClick={handleEditCancel}>
+                    <button
+                      style={s.cancelBtn}
+                      onClick={() => setEditingId(null)}
+                    >
                       Cancel
                     </button>
                   </div>
                 </div>
               ) : (
-                // View mode
                 <>
-                  <p style={styles.noteContent}>{note.content}</p>
-                  <div style={styles.noteMeta}>
-                    <span style={styles.noteDate}>
+                  <p style={s.noteText}>{note.content}</p>
+                  <div style={s.noteMeta}>
+                    <span style={s.noteDate}>
                       {formatDate(note.updatedAt || note.createdAt)}
                     </span>
-                    <div style={styles.noteActions}>
+                    <div style={s.noteActions}>
                       <button
-                        style={styles.editBtn}
-                        onClick={() => handleEditStart(note)}
+                        style={s.editBtn}
+                        onClick={() => {
+                          setEditingId(note.id);
+                          setEditContent(note.content);
+                        }}
                       >
                         Edit
                       </button>
                       <button
-                        style={styles.deleteBtn}
+                        style={s.deleteBtn}
                         onClick={() => handleDelete(note.id)}
                       >
                         Delete
@@ -159,67 +145,71 @@ const NoteEditor = ({ movieId }) => {
   );
 };
 
-const styles = {
-  container: {
-    marginTop: "32px",
-  },
+const s = {
   heading: {
-    color: "#fff",
-    fontSize: "18px",
-    fontWeight: "600",
-    margin: "0 0 16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "16px",
   },
-  inputWrapper: {
+  headingLine: { width: "24px", height: "3px", background: "#C41E1E" },
+  headingText: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: "20px",
+    fontWeight: 900,
+    color: "#1A1A1A",
+  },
+  inputWrap: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
-    marginBottom: "24px",
+    gap: "8px",
+    marginBottom: "20px",
   },
   textarea: {
-    backgroundColor: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: "8px",
-    padding: "12px 14px",
-    color: "#fff",
-    fontSize: "14px",
+    background: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    padding: "10px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
     outline: "none",
     resize: "vertical",
-    lineHeight: "1.5",
-    fontFamily: "inherit",
+    lineHeight: 1.6,
+    width: "100%",
+    boxSizing: "border-box",
   },
   addBtn: {
     alignSelf: "flex-end",
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 20px",
-    fontSize: "14px",
-    fontWeight: "600",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
+    boxShadow: "2px 2px 0 #8B7355",
+    padding: "8px 18px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "11px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
   empty: {
-    color: "#555",
-    fontSize: "14px",
-    textAlign: "center",
-    padding: "24px 0",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "12px",
+    color: "#8B7355",
+    padding: "16px 0",
   },
-  notesList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
+  list: { display: "flex", flexDirection: "column", gap: "0" },
   noteCard: {
-    backgroundColor: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: "10px",
-    padding: "14px 16px",
+    border: "2px solid #1A1A1A",
+    borderBottom: "none",
+    padding: "14px",
+    background: "#F5F0E8",
   },
-  noteContent: {
-    color: "#ccc",
-    fontSize: "14px",
-    lineHeight: "1.6",
-    margin: "0 0 10px",
+  noteText: {
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "13px",
+    color: "#1A1A1A",
+    lineHeight: 1.7,
+    marginBottom: "10px",
     whiteSpace: "pre-wrap",
   },
   noteMeta: {
@@ -228,58 +218,53 @@ const styles = {
     alignItems: "center",
   },
   noteDate: {
-    color: "#555",
-    fontSize: "12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    color: "#8B7355",
   },
-  noteActions: {
-    display: "flex",
-    gap: "8px",
-  },
+  noteActions: { display: "flex", gap: "6px" },
   editBtn: {
-    backgroundColor: "transparent",
-    border: "1px solid #333",
-    color: "#888",
-    borderRadius: "6px",
-    padding: "4px 10px",
-    fontSize: "12px",
+    background: "transparent",
+    border: "1.5px solid #1A1A1A",
+    color: "#1A1A1A",
+    padding: "3px 10px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
   deleteBtn: {
-    backgroundColor: "transparent",
-    border: "1px solid #3a2020",
-    color: "#ff6b6b",
-    borderRadius: "6px",
-    padding: "4px 10px",
-    fontSize: "12px",
+    background: "transparent",
+    border: "1.5px solid #C41E1E",
+    color: "#C41E1E",
+    padding: "3px 10px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
-  editWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  editActions: {
-    display: "flex",
-    gap: "8px",
-    justifyContent: "flex-end",
-  },
+  editWrap: { display: "flex", flexDirection: "column", gap: "8px" },
+  editActions: { display: "flex", gap: "6px", justifyContent: "flex-end" },
   saveEditBtn: {
-    backgroundColor: "#e50914",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
+    background: "#1A1A1A",
+    color: "#F5F0E8",
+    border: "2px solid #1A1A1A",
     padding: "6px 14px",
-    fontSize: "13px",
-    fontWeight: "600",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
   cancelBtn: {
-    backgroundColor: "transparent",
-    border: "1px solid #333",
-    color: "#888",
-    borderRadius: "6px",
+    background: "transparent",
+    border: "1.5px solid #1A1A1A",
+    color: "#1A1A1A",
     padding: "6px 14px",
-    fontSize: "13px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    textTransform: "uppercase",
     cursor: "pointer",
   },
 };
