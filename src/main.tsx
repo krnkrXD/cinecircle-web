@@ -10,8 +10,8 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 // @ts-ignore
 import ErrorBoundary from "./components/ErrorBoundary";
-
-import "./index.css";
+// @ts-ignore
+import "../src/index.css";
 
 const rootElement = document.getElementById("root");
 
