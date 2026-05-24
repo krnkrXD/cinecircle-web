@@ -1,43 +1,38 @@
-// src/App.jsx
-
+// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// @ts-ignore
 import { useAuth } from "./context/AuthContext";
 
-// Pages
+// @ts-ignore
 import Auth from "./pages/Auth";
+// @ts-ignore
 import Library from "./pages/Library";
+// @ts-ignore
 import MovieDetail from "./pages/MovieDetail";
+// @ts-ignore
 import Watchlist from "./pages/Watchlist";
+// @ts-ignore
 import Feed from "./pages/Feed";
-import { useEffect } from "react";
+// @ts-ignore
 import Friends from "./pages/Friends";
 
-// ── Protected Route ───────────────────────────────────────────
-const ProtectedRoute = ({ children }) => {
+import { ReactNode } from "react";
+
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   return currentUser ? children : <Navigate to="/auth" replace />;
 };
 
-// ── Public Route (redirect to library if already logged in) ───
-const PublicRoute = ({ children }) => {
+const PublicRoute = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   return !currentUser ? children : <Navigate to="/library" replace />;
 };
 
-// ── App ───────────────────────────────────────────────────────
 const App = () => {
-  // src/App.jsx
-  useEffect(() => {
-    fetch(
-      `https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=inception`,
-    )
-      .then((r) => r.json())
-      .then((d) => console.log(d));
-  }, []);
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
         <Route
           path="/auth"
           element={
@@ -46,8 +41,6 @@ const App = () => {
             </PublicRoute>
           }
         />
-
-        {/* Protected */}
         <Route
           path="/library"
           element={
@@ -88,8 +81,6 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Fallback — redirect root to library */}
         <Route path="*" element={<Navigate to="/library" replace />} />
       </Routes>
     </BrowserRouter>
@@ -97,20 +88,3 @@ const App = () => {
 };
 
 export default App;
-
-// import { useState } from "react";
-// import reactLogo from './assets/react.svg'
-// import viteLogo from './assets/vite.svg'
-// import heroImg from './assets/hero.png'
-// import "./App.css";
-// import { app } from "./firebase/config";
-
-// console.log("Firebase app name:", app.name);
-
-// function App() {
-//   // const [count, setCount] = useState(0)
-
-//   return <>// Should print: Firebase app name: [DEFAULT]</>;
-// }
-
-// export default App;
