@@ -8,6 +8,7 @@ import {
   removeFriend,
   getFriends,
 } from "../firebase/firestore";
+import FriendMoviesModal from "../components/FriendsMovieModal";
 
 const FriendsList = () => {
   const { currentUser } = useAuth();
@@ -18,7 +19,9 @@ const FriendsList = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [viewingFriend, setViewingFriend] = useState(null);
+  // inside the component, just to check
+  console.log("Friends list:", friends);
   useEffect(() => {
     const load = async () => {
       const list = await getFriends(currentUser.uid);
@@ -180,11 +183,24 @@ const FriendsList = () => {
                 >
                   Remove
                 </button>
+
+                <button
+                  style={s.viewBtn}
+                  onClick={() => setViewingFriend(friend)}
+                >
+                  View films
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
+      {viewingFriend && (
+        <FriendMoviesModal
+          friend={viewingFriend}
+          onClose={() => setViewingFriend(null)}
+        />
+      )}
     </div>
   );
 };
@@ -416,6 +432,19 @@ const s = {
     background: "transparent",
     color: "#C41E1E",
     border: "1.5px solid #C41E1E",
+    padding: "5px 12px",
+    fontFamily: "'IBM Plex Mono',monospace",
+    fontSize: "10px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+  viewBtn: {
+    background: "#F5F0E8",
+    color: "#1A1A1A",
+    border: "2px solid #1A1A1A",
+    boxShadow: "2px 2px 0 #1A1A1A",
     padding: "5px 12px",
     fontFamily: "'IBM Plex Mono',monospace",
     fontSize: "10px",

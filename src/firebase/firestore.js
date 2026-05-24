@@ -204,19 +204,29 @@ export const getFriends = async (uid) => {
   const userSnap = await getDoc(userRef);
   return userSnap.data()?.friends || [];
 };
-// // Firestore database functions
-// export const addMovie = async (movieData) => {
-//   // Add movie to Firestore
-// };
 
-// export const getMovies = async () => {
-//   // Get movies from Firestore
-// };
+// Add to src/firebase/firestore.js
 
-// export const updateMovie = async (movieId, movieData) => {
-//   // Update movie in Firestore
-// };
+export const getFriendMovies = async (friendUid) => {
+  if (!friendUid) {
+    // console.error("getFriendMovies called with no uid");
+    return [];
+  }
 
-// export const deleteMovie = async (movieId) => {
-//   // Delete movie from Firestore
-// };
+  try {
+    const moviesRef = collection(db, "users", friendUid, "movies");
+    const q = query(moviesRef, orderBy("addedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    const movies = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // console.log(`Fetched ${movies.length} movies for uid: ${friendUid}`);
+    return movies;
+  } catch (error) {
+    // console.error("getFriendMovies error:", error.code, error.message);
+    return [];
+  }
+};
