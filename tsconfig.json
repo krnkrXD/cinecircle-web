@@ -15,8 +15,9 @@
     "allowJs": true,
     "checkJs": false,
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "composite": true
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.app.json" }]
 }
